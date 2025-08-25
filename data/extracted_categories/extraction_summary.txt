@@ -1,0 +1,28 @@
+MBS XML数据提取摘要报告
+==================================================
+
+提取时间: 2025-01-27
+源文件: file.json
+
+各Category统计信息:
+------------------------------
+Category 1: 664 条记录
+Category 2: 137 条记录
+Category 3: 3401 条记录
+Category 4: 228 条记录
+Category 5: 540 条记录
+Category 6: 616 条记录
+Category 8: 281 条记录
+
+总计: 5867 条记录
+
+输出文件:
+--------------------
+- category_1.json
+- category_2.json
+- category_3.json
+- category_4.json
+- category_5.json
+- category_6.json
+- category_8.json
+- extraction_summary.txt (本文件)

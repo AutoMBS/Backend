@@ -1,0 +1,54 @@
+schema: v0.1
+meta:
+  category:
+    category_id: 
+      type: string
+      description: "MBS Category identifier"
+  groups:
+    - group_id: 
+        type: string
+        description: "Group identifier within the category"
+      subheadings:
+        - subheading_id: 
+            type: string
+            description: "Subheading identifier within the group"
+          items:
+            - item_num:
+                type: string
+                description: "Unique MBS item number"
+              provider:
+                type: string
+                description: "Healthcare professional delivering the service"
+              treatment_location:
+                type: string
+                description: "Location where the treatment is provided"
+              therapy_type:
+                type: string
+                description: "Type of therapy or procedure"
+              treatment_for:
+                type: string
+                description: "Diseases or conditions targeted by this item"
+              treatment_course_duration:
+                type: string
+                description: "Overall treatment course length"
+              patient_eligibility:
+                type: string
+                description: "Conditions a patient must meet for eligibility"
+              restriction_diagnoses:
+                type: string
+                description: "Diseases or conditions excluded from coverage"
+              restriction_exclusions:
+                type: string
+                description: "Other MBS items that cannot be claimed together"
+              start_age:
+                type: integer
+                description: "Minimum patient age requirement"
+              end_age:
+                type: integer
+                description: "Maximum patient age limit"
+              start_duration:
+                type: integer
+                description: "Minimum duration of the service in minutes"
+              end_duration:
+                type: integer
+                description: "Maximum duration of the service in minutes"
