@@ -7,13 +7,23 @@ from pydantic import BaseModel
 import uvicorn
 from datetime import datetime
 
+from contextlib import asynccontextmanager
+from .rag_service import RAGService
+from .routers import rag 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.rag = RAGService()   # 启动时加载模型与Qdrant连接
+    yield
+
 # 创建FastAPI应用实例
 app = FastAPI(
     title="Medical Categories Data API",
     description="API for accessing medical categories data from SQLite database",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # 添加CORS中间件
@@ -658,6 +668,7 @@ async def filter_category3(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Category 3过滤失败: {str(e)}")
+app.include_router(rag.router)
 
 # 启动服务器
 if __name__ == "__main__":
