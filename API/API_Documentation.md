@@ -19,7 +19,7 @@ python main.py
 
 ### 访问地址
 - **API服务**: http://localhost:8000
-- **交互式文档**: http://localhost:8000/docs
+- **交互式文档**: http://localhost:8000/doçcs
 - **ReDoc文档**: http://localhost:8000/redoc
 
 ## 📊 数据库结构
