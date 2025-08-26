@@ -11,13 +11,13 @@ def create_database():
     try:
         # 读取category_1_final.csv
         print("正在读取 category_1_final.csv...")
-        df_category1 = pd.read_csv('data/category_1_final.csv')
+        df_category1 = pd.read_csv('category_1_final.csv')
         print(f"Category 1 数据行数: {len(df_category1)}")
         print(f"Category 1 列名: {list(df_category1.columns)}")
         
         # 读取category_3_final.csv
         print("正在读取 category_3_final.csv...")
-        df_category3 = pd.read_csv('data/category_3_final.csv')
+        df_category3 = pd.read_csv('category_3_final.csv')
         print(f"Category 3 数据行数: {len(df_category3)}")
         print(f"Category 3 列名: {list(df_category3.columns)}")
         
