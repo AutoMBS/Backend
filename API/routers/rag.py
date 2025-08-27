@@ -1,14 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import Dict, Any
 from datetime import datetime
-from ..rag_service import RAGService
+# 使用绝对导入避免包导入问题
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from rag_service import RAGService
 
 router = APIRouter()
 
 def get_rag(request: Request) -> RAGService:
     return request.app.state.rag 
 
-@router.post("/code/suggest")
+@router.post("/code/suggest",
+            summary="RAG建议",
+            description="基于自然语言查询和过滤条件，使用RAG技术生成医疗Item建议",
+            tags=["RAG"])
 def suggest_codes(note: Dict[str, Any], rag: RAGService = Depends(get_rag)):
     try:
         query = note.get("free_text", "")

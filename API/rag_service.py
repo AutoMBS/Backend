@@ -4,8 +4,10 @@ from typing import List, Optional, Any
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance
 from sentence_transformers import SentenceTransformer, CrossEncoder
+from CRUD import CRUD
 
-CSV = "data/category_1_final.csv"
+# 数据库配置
+DB_PATH = "../data/medical_categories.db"
 COL = "MBS"
 DEVICE = "cuda" if os.environ.get("CUDA_VISIBLE_DEVICES", "") != "" else "cpu"
 
@@ -16,8 +18,11 @@ class RAGService:
         collection: str = COL,
         emb_model_name: str = "BAAI/bge-m3",
         reranker_name: str = "BAAI/bge-reranker-large",
+        db_path: str = DB_PATH,
     ):
         self.collection = collection
+        self.db_path = db_path
+        self.crud = CRUD(db_path)
         # 1) Embedding
         self.emb_model = SentenceTransformer(emb_model_name, device=DEVICE)
         self.emb_model.max_seq_length = 512
@@ -26,9 +31,17 @@ class RAGService:
         # 2) Reranker
         self.reranker = CrossEncoder(reranker_name, device=DEVICE)
 
-        # 3) Qdrant
-        self.client = QdrantClient(url=qdrant_url)
-        self._ensure_collection()
+        # 3) Qdrant - 尝试连接，如果失败则标记为不可用
+        self.qdrant_available = False
+        try:
+            self.client = QdrantClient(url=qdrant_url)
+            self._ensure_collection()
+            self.qdrant_available = True
+            print(f"✅ Qdrant连接成功: {qdrant_url}")
+        except Exception as e:
+            print(f"⚠️  Qdrant连接失败: {e}")
+            print("RAG搜索功能将不可用，但其他API功能正常")
+            self.qdrant_available = False
 
     # ---------- data ----------
     def build_doc(self, row: pd.Series) -> str:
@@ -36,12 +49,32 @@ class RAGService:
             f"{row['service_summary']}"
         )
 
-    def load_corpus(self):
-        df = pd.read_csv(CSV)
-        df.fillna("", inplace=True)
-        texts = df.apply(self.build_doc, axis=1).tolist()
-        metas = df.to_dict(orient="records")
-        return texts, metas
+    def load_corpus(self, category_id: str = "1"):
+        """
+        从SQLite数据库加载语料库数据
+        默认加载category_1的数据
+        """
+        try:
+            # 使用CRUD从数据库获取数据
+            df = self.crud.get_category_dataframe(category_id)
+            
+            if df.empty:
+                raise Exception(f"分类 {category_id} 没有数据")
+            
+            # 处理缺失值
+            df.fillna("", inplace=True)
+            
+            # 生成文本和元数据
+            texts = df.apply(self.build_doc, axis=1).tolist()
+            metas = df.to_dict(orient="records")
+            
+            print(f"✅ 成功加载分类 {category_id} 的数据，共 {len(metas)} 条记录")
+            return texts, metas
+            
+        except Exception as e:
+            print(f"⚠️  加载语料库失败: {e}")
+            # 返回空数据
+            return [], []
 
     # ---------- Qdrant ----------
     def _ensure_collection(self):
@@ -112,8 +145,42 @@ class RAGService:
         ]
 
     # ---------- upload data----------
-    def buildVectorDb(self):
-        texts, metas = self.load_corpus()
-        vecs = self.encode_corpus(texts)
-        self.upsert(vecs, metas)
-        return {"indexed": len(metas)}
+    def buildVectorDb(self, category_id: str = "1"):
+        """
+        构建向量数据库
+        支持指定分类ID，默认使用category_1
+        """
+        if not self.qdrant_available:
+            return {"error": "Qdrant服务不可用，无法构建向量数据库"}
+        
+        try:
+            print(f"🔄 开始构建分类 {category_id} 的向量数据库...")
+            
+            # 加载指定分类的数据
+            texts, metas = self.load_corpus(category_id)
+            
+            if not texts or not metas:
+                return {"error": f"分类 {category_id} 没有数据可处理"}
+            
+            print(f"📊 数据加载完成，开始编码...")
+            
+            # 编码文本为向量
+            vecs = self.encode_corpus(texts)
+            
+            print(f"🔢 向量编码完成，开始上传到Qdrant...")
+            
+            # 上传到Qdrant
+            self.upsert(vecs, metas)
+            
+            print(f"✅ 向量数据库构建完成！共处理 {len(metas)} 条记录")
+            return {
+                "success": True,
+                "category_id": category_id,
+                "indexed": len(metas),
+                "message": f"成功构建分类 {category_id} 的向量数据库"
+            }
+            
+        except Exception as e:
+            error_msg = f"构建向量数据库失败: {str(e)}"
+            print(f"❌ {error_msg}")
+            return {"error": error_msg}
