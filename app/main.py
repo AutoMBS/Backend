@@ -6,16 +6,18 @@ This is the main FastAPI application entry point that provides:
 - Medical categories data access via RulebookService
 - RAG-based medical code suggestions via RAGService
 - RESTful API endpoints for medical billing and coding
+- LLM-based complexity extraction via LLMExtractService
 
 Architecture:
 - FastAPI web framework with async support
 - SQLite database for medical categories data
 - Qdrant vector database for semantic search
 - Modular service architecture with dependency injection
+- Vertex AI Endpoint for LLM inference
 
 Author: Medical Coding Team
 Version: 2.0.0
-Last Updated: 2025-08-27
+Last Updated: 2025-08-28
 """
 
 import os
@@ -27,7 +29,8 @@ from fastapi.middleware.cors import CORSMiddleware
 # Import services using relative imports
 from .rag_service import RAGService
 from .rulebook_service import RulebookService
-from .routers import rag, rulebook
+from .llm_extract_service import LLMExtractService
+from .routers import rag, rulebook, llm_extract
 
 
 # =============================================================================
@@ -63,6 +66,9 @@ async def lifespan(app: FastAPI):
         app.state.rulebook = RulebookService()
         print("✅ Rulebook Service initialized successfully")
         
+        app.state.llm_extract = LLMExtractService()
+        print("✅ LLM Extract Service initialized successfully")
+
         print("🎯 All services initialized successfully")
         
     except Exception as e:
@@ -143,6 +149,12 @@ app.include_router(
     tags=["RAG"]
 )
 
+# LLM Extract: complexity prediction
+app.include_router(
+    llm_extract.router,
+    prefix="/llm",
+    tags=["LLM Extract"]
+)
 
 # =============================================================================
 # ROOT ENDPOINT
@@ -166,6 +178,7 @@ async def root():
         "endpoints": {
             "rulebook": "/rulebook",
             "rag": "/code",
+            "llm_extract": "/llm",
             "docs": "/docs",
             "redoc": "/redoc"
         },
