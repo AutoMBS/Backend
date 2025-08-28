@@ -53,7 +53,7 @@ class RulebookService:
         categories = service.get_all_categories()
     """
     
-    def __init__(self, db_path: str = "../data/medical_categories.db"):
+    def __init__(self, db_path: str = "data/medical_categories.db"):
         """
         Initialize RulebookService with database path.
         

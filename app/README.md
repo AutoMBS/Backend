@@ -41,7 +41,6 @@ API/
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd Backend/API
    ```
 
 2. **Create virtual environment**
@@ -62,7 +61,7 @@ API/
 
 5. **Start the API server**
    ```bash
-   python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+   python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
    ```
 
 ## 📚 API Documentation

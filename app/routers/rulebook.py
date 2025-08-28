@@ -33,11 +33,8 @@ from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
-# Use absolute imports to avoid package import issues
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from rulebook_service import RulebookService
+# Use relative imports
+from ..rulebook_service import RulebookService
 
 
 # =============================================================================

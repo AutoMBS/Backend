@@ -4,10 +4,10 @@ from typing import List, Optional, Any
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance
 from sentence_transformers import SentenceTransformer, CrossEncoder
-from CRUD import CRUD
+from .CRUD import CRUD
 
 # 数据库配置
-DB_PATH = "../data/medical_categories.db"
+DB_PATH = "data/medical_categories.db"
 COL = "MBS"
 DEVICE = "cuda" if os.environ.get("CUDA_VISIBLE_DEVICES", "") != "" else "cpu"
 

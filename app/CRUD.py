@@ -44,7 +44,7 @@ class CRUD:
         data = crud.get_category_dataframe("1")
     """
     
-    def __init__(self, db_path: str = "../data/medical_categories.db"):
+    def __init__(self, db_path: str = "data/medical_categories.db"):
         """
         Initialize CRUD manager with database path.
         
@@ -299,5 +299,3 @@ class CRUD:
             
         except Exception as e:
             raise Exception(f"Failed to calculate statistics for category {category_id}: {str(e)}")
-    
-

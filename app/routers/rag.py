@@ -1,11 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import Dict, Any
 from datetime import datetime
-# 使用绝对导入避免包导入问题
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from rag_service import RAGService
+# 使用相对导入
+from ..rag_service import RAGService
 
 router = APIRouter()
 

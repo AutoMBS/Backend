@@ -24,17 +24,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Import services with fallback for different execution contexts
-try:
-    # Relative imports when running as a package
-    from .rag_service import RAGService
-    from .rulebook_service import RulebookService
-    from .routers import rag, rulebook
-except ImportError:
-    # Absolute imports when running directly
-    from rag_service import RAGService
-    from rulebook_service import RulebookService
-    from routers import rag, rulebook
+# Import services using relative imports
+from .rag_service import RAGService
+from .rulebook_service import RulebookService
+from .routers import rag, rulebook
 
 
 # =============================================================================
