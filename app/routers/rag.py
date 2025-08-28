@@ -30,9 +30,10 @@ def suggest_codes(note: Dict[str, Any], rag: RAGService = Depends(get_rag)):
         raise HTTPException(status_code=500, detail=f"RAG 生成失败: {str(e)}")
 
 @router.post("/_internal/rag/buildVectorDb", include_in_schema=False)
-def buildVectorDb(rag: RAGService = Depends(get_rag)):
+def buildVectorDb(request: Dict[str, Any], rag: RAGService = Depends(get_rag)):
     try:
-        stat = rag.buildVectorDb()
+        category_id = request.get("category_id", "1")
+        stat = rag.buildVectorDb(category_id)
         return {"ok": True, "stat": stat}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"重建索引失败: {str(e)}")
