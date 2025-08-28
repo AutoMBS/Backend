@@ -199,6 +199,9 @@ class RAGService:
             if not texts or not metas:
                 return {"error": f"分类 {category_id} 没有数据可处理"}
         
+            print(f"📊 数据加载完成，共 {len(metas)} 条记录")
+            print(f"🔢 开始向量编码...")
+            
             # 编码文本为向量
             vecs = self.encode_corpus(texts)
             

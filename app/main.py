@@ -30,7 +30,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from .rag_service import RAGService
 from .rulebook_service import RulebookService
 from .llm_extract_service import LLMExtractService
-from .routers import rag, rulebook, llm_extract
+from .llm_reasoning_service import LLMReasoningService
+from .routers import rag, rulebook, llm_extract, llm_reasoning
 
 
 # =============================================================================
@@ -57,6 +58,11 @@ async def lifespan(app: FastAPI):
     # Startup: Initialize core services
     print("🚀 Starting MBS API Server...")
     
+    # Ensure Google Cloud credentials are set
+    if not os.getenv('GOOGLE_APPLICATION_CREDENTIALS'):
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'app/thematic-keel-470306-f6-e15ba2e68d44.json'
+        print("✅ Set GOOGLE_APPLICATION_CREDENTIALS environment variable")
+    
     try:
         # Initialize RAG service for semantic search capabilities
         app.state.rag = RAGService()
@@ -68,6 +74,9 @@ async def lifespan(app: FastAPI):
         
         app.state.llm_extract = LLMExtractService()
         print("✅ LLM Extract Service initialized successfully")
+        
+        app.state.llm_reasoning = LLMReasoningService()
+        print("✅ LLM Reasoning Service initialized successfully")
 
         print("🎯 All services initialized successfully")
         
@@ -149,6 +158,13 @@ app.include_router(
     tags=["RAG"]
 )
 
+# Include LLM Reasoning router for intelligent item selection
+app.include_router(
+    llm_reasoning.router,
+    prefix="/reasoning",
+    tags=["LLM Reasoning"]
+)
+
 # LLM Extract: complexity prediction
 app.include_router(
     llm_extract.router,
@@ -177,7 +193,8 @@ async def root():
         "status": "running",
         "endpoints": {
             "rulebook": "/rulebook",
-            "rag": "/code",
+            "rag": "/MBS",
+            "reasoning": "/reasoning",
             "llm_extract": "/llm",
             "docs": "/docs",
             "redoc": "/redoc"

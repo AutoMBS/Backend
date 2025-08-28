@@ -188,7 +188,28 @@ class CRUD:
                 raise Exception(f"Category table '{table_name}' does not exist")
             
             # Read data directly into pandas DataFrame
-            df = pd.read_sql_query(f"SELECT * FROM {table_name} LEFT JOIN Extra_Definition on {table_name}.extra_rule_id = Extra_Definition.Rule_ID", conn)
+            if category_id == "1":
+                df = pd.read_sql_query(f"SELECT * FROM {table_name} LEFT JOIN Extra_Definition on {table_name}.extra_rule_id = Extra_Definition.Rule_ID", conn)
+            elif category_id == "3":
+                df = pd.read_sql_query(f"""SELECT
+                    {table_name}.provider AS service_provider,
+                    {table_name}.treatment_location AS location,
+                    TRIM(
+                        COALESCE({table_name}.therapy_type || ' ', '') ||
+                        COALESCE({table_name}.treatment_course || ' ', '') ||
+                        COALESCE({table_name}.patient_eligibility, '')
+                    ) AS service_summary,
+                    {table_name}.start_age,
+                    {table_name}.end_age,
+                    {table_name}.start_duration AS start_time,
+                    {table_name}.end_duration   AS end_time,
+                    {table_name}.item_num AS item_number,
+                    Extra_Definition.Rule_Description
+                    FROM {table_name}
+                    LEFT JOIN Extra_Definition
+                    ON {table_name}.extra_rule_id = Extra_Definition.Rule_ID;""", conn)
+            else:
+                raise Exception(f"Category {category_id} is not supported")
             conn.close()
             
             return df

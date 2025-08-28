@@ -151,6 +151,16 @@ Base URL: `/MBS`
 | POST | `/MBS/code/suggest` | Generate medical code suggestions using RAG |
 | POST | `/MBS/_internal/rag/buildVectorDb` | Build/rebuild vector database index |
 
+### LLM Reasoning API (Intelligent Medical Coding)
+Base URL: `/reasoning`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/reasoning/health` | LLM Reasoning service health check |
+| POST | `/reasoning/analyze_candidates` | Analyze medical coding candidates with LLM reasoning |
+| POST | `/reasoning/select_best_item` | Select best medical coding item with RAG integration |
+| POST | `/reasoning/medical_coding_reasoning` | Professional medical coding reasoning endpoint |
+
 ## 🔍 Usage Examples
 
 ### Get API Information
@@ -192,6 +202,176 @@ curl -X POST http://localhost:8000/MBS/_internal/rag/buildVectorDb \
   -d '{"category_id": "1"}'
 ```
 
+### LLM Reasoning for Medical Coding
+
+#### Method 1: Analyze Medical Coding Candidates
+```bash
+curl -X POST http://localhost:8000/reasoning/analyze_candidates \
+  -H "Content-Type: application/json" \
+  -d '{
+    "patient_info": "Male with facial and foot injury. HOPC: Cage fell off, struck face, and landed on left foot. No other injuries. Tenderness over right mandible. Bruising over midfoot with significant swelling. Pain with weight bearing. PMH: Hypertension. Meds: Anti-hypertensive. Allergies: Testamental. SH: Lives at home. O/E: GCS 15, Normal eye movement, Pupil size 3, equal and reactive, Mouth opening normal, Bruising over midfoot with significant swelling Pain with weight bearing. Impression: Facial and foot injury. Management Plan: Pain management, CT left foot, CT brain, CT facial bones. Follow-up with investigations review. CT showed medial cuneform avulsion fracture. Treatment Cammbot review by orthopaedic consultant in clinic. Age: 55Y",
+    "candidates": [
+      {
+        "score": 0.229,
+        "payload": {
+          "category_code": 1,
+          "category_name": "Professional Attendance",
+          "item_number": 5263,
+          "group_name": "A23",
+          "subheading_code": 3.0,
+          "subheading_mutually_exclusive": 1,
+          "service_provider": "medical practitioner (other than a general practitioner)",
+          "location": "residential aged care facility or consulting rooms within such a",
+          "start_age": 0,
+          "end_age": 100,
+          "start_time": 20,
+          "end_time": 40
+        }
+      },
+      {
+        "score": 0.185,
+        "payload": {
+          "category_code": 1,
+          "category_name": "Professional Attendance",
+          "item_number": 5012,
+          "group_name": "A23",
+          "subheading_code": 2.0,
+          "subheading_mutually_exclusive": 1,
+          "service_provider": "medical practitioner (other than a general practitioner)",
+          "location": "consulting rooms",
+          "start_age": 4,
+          "end_age": 75,
+          "start_time": 15,
+          "end_time": 30
+        }
+      }
+    ]
+  }'
+```
+
+#### Method 2: Professional Medical Coding Reasoning
+```bash
+curl -X POST http://localhost:8000/reasoning/medical_coding_reasoning \
+  -H "Content-Type: application/json" \
+  -d '{
+    "patient_info": "Male with facial and foot injury. HOPC: Cage fell off, struck face, and landed on left foot. Age: 55Y. Diagnosis: Facial and foot injury, medial cuneiform avulsion fracture. Management: CT scans, orthopaedic consultation.",
+    "candidates": [
+      {
+        "score": 0.229,
+        "payload": {
+          "item_number": 5263,
+          "category_name": "Professional Attendance",
+          "service_provider": "medical practitioner (other than a general practitioner)",
+          "location": "consulting rooms",
+          "start_age": 0,
+          "end_age": 100,
+          "start_time": 20,
+          "end_time": 40
+        }
+      }
+    ]
+  }'
+```
+
+#### Method 3: Select Best Item with RAG Integration
+```bash
+curl -X POST http://localhost:8000/reasoning/select_best_item \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "facial and foot injury evaluation",
+    "age": 55,
+    "provider": "medical practitioner (other than a general practitioner)",
+    "duration": 25,
+    "location": "consulting rooms",
+    "top_n": 3
+  }'
+```
+
+#### Example Response
+```json
+{
+  "success": true,
+  "message": "Successfully analyzed candidate medical coding items",
+  "data": {
+    "patient_info": "Male with facial and foot injury...",
+    "candidates": [...],
+    "reasoning_result": {
+      "selected_item": {
+        "score": 0.229,
+        "payload": {
+          "item_number": 5263,
+          "category_name": "Professional Attendance",
+          "service_provider": "medical practitioner (other than a general practitioner)",
+          "location": "consulting rooms"
+        }
+      },
+      "selected_item_index": 0,
+      "confidence": 0.85,
+      "reasoning": "Item 5263 is appropriate for professional attendance by a medical practitioner in consulting rooms. The patient's age (55) falls within the valid range (0-100) and the service provider type matches the requirement.",
+      "key_factors": ["age appropriateness", "provider type match", "location suitability"],
+      "raw_text": "...",
+      "truncated": false,
+      "total_candidates": 2
+    }
+  },
+  "timestamp": "2025-01-XX..."
+}
+```
+
+## 🔄 Complete LLM Reasoning Workflow
+
+### Step 1: Build Vector Database
+```bash
+# First, build the vector database for medical coding items
+curl -X POST http://localhost:8000/MBS/_internal/rag/buildVectorDb \
+  -H "Content-Type: application/json" \
+  -d '{"category_id": "1"}'
+```
+
+### Step 2: RAG Search for Candidates
+```bash
+# Search for relevant medical coding candidates
+curl -X POST http://localhost:8000/MBS/code/suggest \
+  -H "Content-Type: application/json" \
+  -d '{
+    "free_text": "facial and foot injury evaluation",
+    "age": 55,
+    "provider": "medical practitioner (other than a general practitioner)",
+    "duration": 25,
+    "location": "consulting rooms"
+  }'
+```
+
+### Step 3: LLM Reasoning Analysis
+```bash
+# Use LLM reasoning to select the best medical coding item
+curl -X POST http://localhost:8000/reasoning/analyze_candidates \
+  -H "Content-Type: application/json" \
+  -d '{
+    "patient_info": "Male with facial and foot injury. HOPC: Cage fell off, struck face, and landed on left foot. Age: 55Y. Diagnosis: Facial and foot injury, medial cuneiform avulsion fracture. Management: CT scans, orthopaedic consultation.",
+    "candidates": [
+      {
+        "score": 0.229,
+        "payload": {
+          "item_number": 5263,
+          "category_name": "Professional Attendance",
+          "service_provider": "medical practitioner (other than a general practitioner)",
+          "location": "consulting rooms",
+          "start_age": 0,
+          "end_age": 100
+        }
+      }
+    ]
+  }'
+```
+
+### Workflow Benefits
+- **🎯 Precision**: LLM analyzes clinical relevance, age appropriateness, and provider matching
+- **📊 Confidence Scoring**: Provides confidence levels with detailed reasoning
+- **🔍 Clinical Justification**: Links patient symptoms, diagnosis, and treatment to coding selection
+- **⚡ Efficiency**: Automated reasoning reduces manual coding errors
+- **📋 Documentation**: Detailed reasoning process for audit and compliance
+
 ## 🗄️ Database Configuration
 
 ### SQLite Database
@@ -215,6 +395,18 @@ curl -X POST http://localhost:8000/MBS/_internal/rag/buildVectorDb \
 - **Collection Name**: `MBS`
 - **Distance Metric**: Cosine similarity
 - **Vector Dimension**: Auto-detected from embedding model
+
+### LLM Reasoning Configuration
+- **Service**: Google Cloud Vertex AI
+- **Model**: Custom fine-tuned model for medical coding
+- **Temperature**: 0.5 (balanced creativity and precision)
+- **Max Tokens**: 64,000
+- **Authentication**: Service account credentials
+- **Features**: 
+  - Clinical information analysis
+  - Multi-dimensional matching assessment
+  - Precise reasoning process
+  - English-only output
 
 ## 🚨 Error Handling
 
