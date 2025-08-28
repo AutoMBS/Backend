@@ -174,14 +174,14 @@ class RulebookService:
             # 根据是否指定limit来决定查询方式
             if limit is not None:
                 # 如果指定了limit，使用分页查询
-                cursor.execute(f"SELECT * FROM {table_name} LIMIT ? OFFSET ?", (limit, offset))
+                cursor.execute(f"SELECT * FROM {table_name} inner join Extra_Definition on {table_name}.extra_rule_id = Extra_Definition.Rule_ID LIMIT ? OFFSET ?", (limit, offset))
                 rows = cursor.fetchall()
                 message = f"成功获取分类 {category_id} 的数据 (分页模式)"
             else:
                 # 如果没有指定limit，返回所有数据
                 if offset > 0:
                     # 如果指定了offset但没有limit，从offset开始返回所有数据
-                    cursor.execute(f"SELECT * FROM {table_name} LIMIT -1 OFFSET ?", (offset,))
+                    cursor.execute(f"SELECT * FROM {table_name} inner join Extra_Definition on {table_name}.extra_rule_id = Extra_Definition.Rule_ID LIMIT -1 OFFSET ?", (offset,))
                     rows = cursor.fetchall()
                     message = f"成功获取分类 {category_id} 的数据 (从第{offset+1}条开始)"
                 else:

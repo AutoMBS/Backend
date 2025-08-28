@@ -188,7 +188,7 @@ class CRUD:
                 raise Exception(f"Category table '{table_name}' does not exist")
             
             # Read data directly into pandas DataFrame
-            df = pd.read_sql_query(f"SELECT * FROM {table_name}", conn)
+            df = pd.read_sql_query(f"SELECT * FROM {table_name} inner join Extra_Definition on {table_name}.extra_rule_id = Extra_Definition.Rule_ID", conn)
             conn.close()
             
             return df
