@@ -3,7 +3,7 @@ from typing import Dict, Any
 from datetime import datetime
 # 使用相对导入
 from ..rag_service import RAGService
-
+import logging
 router = APIRouter()
 
 def get_rag(request: Request) -> RAGService:
@@ -19,7 +19,8 @@ def suggest_codes(note: Dict[str, Any], rag: RAGService = Depends(get_rag)):
         age = note.get("age")
         operator = note.get("provider")
         duration = note.get("duration")
-        candidates = rag.search(query, age=age, operator=operator, duration=duration, top_n=10)
+        location = note.get("location")
+        candidates = rag.search(query, age=age, operator=operator, duration=duration,location=location,top_n=10)
         return {
             "success": True,
             "message": "RAG candidates generated",

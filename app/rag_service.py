@@ -5,6 +5,8 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from .CRUD import CRUD
+from qdrant_client.models import Filter, FieldCondition, Range
+
 
 # 数据库配置
 DB_PATH = "data/medical_categories.db"
@@ -123,15 +125,50 @@ class RAGService:
     def doc_from_meta(self, m):
         return self.build_doc(m)
 
-    def search(self, query: str, k=50, age=None, operator=None, duration=None, top_n=10):
+    def search(self, query: str, k=50, age=None, operator=None, duration=None,location=None, top_n=10):
+        if not self.qdrant_available:
+            return {"error": "Qdrant不可用，搜索被跳过"}
+        print(f"🔎 查询语句：{query},")
         qvec = self.encode_query(query)
+        # 构造 filter
+        conditions = []
+        if age is not None:
+            conditions.append(FieldCondition(
+                key="start_age",
+                range=Range(lte=age)
+            ))
+            conditions.append(FieldCondition(
+                key="end_age",
+                range=Range(gte=age)
+            ))
+        if operator:
+            conditions.append(FieldCondition(
+                key="service_provider",
+                match={"text": operator}
+            ))
+        if duration is not None:
+            conditions.append(FieldCondition(
+                key="start_time",
+                range=Range(lte=duration)
+            ))
+            conditions.append(FieldCondition(
+                key="end_time",
+                range=Range(gte=duration)
+            ))
+        if location is not None:
+            conditions.append(FieldCondition(
+                key="location",
+                match={"text": location}
+            ))
+
+        search_filter = Filter(must=conditions) if conditions else None
         hits = self.client.search(
             collection_name=self.collection,
             query_vector=qvec,
             limit=k,
-            with_payload=True
+            with_payload=True,
+            query_filter=search_filter 
         )
-        hits = [h for h in hits if self.prefilter(h.payload, age, operator, duration)]
         if not hits:
             return []
 

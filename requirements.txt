@@ -30,3 +30,7 @@ python-multipart>=0.0.6
 sentence_transformers
 # Vector database
 qdrant_client
+
+#google model
+google-cloud-aiplatform
+google-auth
