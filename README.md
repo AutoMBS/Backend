@@ -92,7 +92,7 @@ http://localhost:6333/dashboard#/collections/MBS
 
 ### 2. RAG API
 
-- `POST /code/suggest`
+- `POST MBS/code/suggest`
   Input free text (e.g., clinical note) to get candidate MBS items:
 
   ```json
