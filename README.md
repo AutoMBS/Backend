@@ -46,7 +46,7 @@ docker run -p 6333:6333 -p 6334:6334 qdrant/qdrant
 Start the FastAPI server:
 
 ```bash
-uvicorn API.main:app --reload
+python -m uvicorn app.main:app --reload
 ```
 
 Default endpoints:
