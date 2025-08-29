@@ -4,6 +4,7 @@ from datetime import datetime
 # 使用相对导入
 from ..rag_service import RAGService
 from ..llm_reasoning_service import LLMReasoningService
+from ..llm_extract_service import LLMExtractService
 
 router = APIRouter()
 
@@ -17,7 +18,7 @@ def get_llm_reasoning(request: Request) -> LLMReasoningService:
             summary="LLM reasoning to select best medical coding item",
             description="Use LLM reasoning to select the most appropriate medical coding item based on RAG search results",
             tags=["LLM Reasoning"])
-def select_best_item(request: Dict[str, Any], rag: RAGService = Depends(get_rag), llm_reasoning: LLMReasoningService = Depends(get_llm_reasoning)):
+def select_best_item(request: Dict[str, Any], rag: RAGService = Depends(get_rag), llm_reasoning: LLMReasoningService = Depends(get_llm_reasoning), llm_extract_service: LLMExtractService = Depends(get_llm_reasoning)):
     try:
         # Get request parameters
         query = request.get("query", "")
@@ -49,6 +50,13 @@ def select_best_item(request: Dict[str, Any], rag: RAGService = Depends(get_rag)
             }
         
         # Use LLM reasoning to select best medical coding item
+        response_complexity = llm_extract_service.predict_complexity(query)
+        complexity = response_complexity.get("complexity_level", "")
+        query = f"{query} [Complexity: {complexity}]"
+
+        print("="*50)
+        print("query with complexity:", query)
+
         reasoning_result = llm_reasoning.select_best_item(
             patient_info=query,
             candidates=candidates

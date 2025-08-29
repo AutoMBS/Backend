@@ -167,83 +167,27 @@ Formatting constraints:
             raise RuntimeError(f"Prediction call failed: {e}")
 
         if response.output_text:
-            print(f"LLM raw response: {response.output_text}")
-            print("=" * 50)
-            # Normalize predictions to a dict
-            pred_container = getattr(response, "predictions", None)
-            if isinstance(pred_container, list):
-                pred0 = pred_container[0] if pred_container else {}
-            elif isinstance(pred_container, dict):
-                pred0 = pred_container
-            else:
-                pred0 = {}
+            # model response
+            output = json.loads(response.output_text)
 
-            # Pull OpenAI-style content
-            choices = pred0.get("choices", []) if isinstance(pred0, dict) else []
-            content = choices[0].get("message", {}).get("content", "") if choices else ""
-            finish_reason = choices[0].get("finish_reason") if choices else None
-            truncated = (finish_reason == "length")
-            raw_text = content
+            # original candidates list (whatever you passed in)
+            raw_text = str(output)      # or keep the raw model text if you captured it
+            truncated = False           # set True if you detected truncation
 
-            # Remove optional <think>...</think>
-            content = re.sub(r"<think>.*?</think>", "", content, flags=re.S).strip()
-
-            # Find the last balanced JSON object
-            def _find_last_json(s: str) -> Optional[str]:
-                end = None
-                depth = 0
-                for i in range(len(s) - 1, -1, -1):
-                    ch = s[i]
-                    if ch == '}':
-                        if depth == 0:
-                            end = i
-                        depth += 1
-                    elif ch == '{':
-                        depth -= 1
-                        if depth == 0 and end is not None:
-                            return s[i:end + 1]
-                return None
-
-            json_str = _find_last_json(content)
-
-            selected_item_index = 0
-            confidence = 0.0
-            reasoning = ""
-            key_factors = []
-            
-            if json_str:
-                try:
-                    parsed = json.loads(json_str)
-                    selected_item_index = int(parsed.get("selected_item_index", 0))
-                    confidence = float(parsed.get("confidence", 0.0))
-                    reasoning = str(parsed.get("reasoning", "")).strip()
-                    key_factors = parsed.get("key_factors", [])
-                    
-                    # Validate index range
-                    if selected_item_index < 0 or selected_item_index >= len(candidates):
-                        selected_item_index = 0
-                        confidence = 0.0
-                        reasoning = "Index out of range, using default selection"
-                        
-                except Exception as e:
-                    print(f"JSON parsing failed: {e}")
-                    selected_item_index = 0
-                    confidence = 0.0
-                    reasoning = "JSON parsing failed, using default selection"
-
-            # Get selected item
-            selected_item = candidates[selected_item_index] if 0 <= selected_item_index < len(candidates) else candidates[0]
+            selected_item_index = output.get("selected_item_index")
+            selected_item = output.get("decision")
 
             return {
                 "selected_item": selected_item,
                 "selected_item_index": selected_item_index,
-                "confidence": confidence,
-                "reasoning": reasoning,
-                "key_factors": key_factors,
+                "confidence": output.get("confidence"),
+                "reasoning": output.get("why"),
+                "key_factors": output.get("key_factors", []),
                 "raw_text": raw_text,
                 "truncated": truncated,
-                "total_candidates": len(candidates)
+                "total_candidates": len(candidates),
             }
+
         else:
             return {
                 "error": "LLM reasoning failed, no response",
