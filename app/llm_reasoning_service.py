@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 import json
 import re
 from google.cloud import aiplatform
-
+from openai import OpenAI
 
 PROJECT_ID = "thematic-keel-470306-f6"
 REGION = "us-east1"  # e.g., "us-central1"
@@ -157,11 +157,18 @@ Formatting constraints:
         params: Dict[str, Any] = {}
 
         try:
-            response = self.endpoint.predict(instances=instances, parameters=params)
+            # response = self.endpoint.predict(instances=instances, parameters=params)
+            client = OpenAI()
+            response = client.responses.create(
+                model="gpt-4o-mini",
+                input=prompt
+            )
         except Exception as e:
             raise RuntimeError(f"Prediction call failed: {e}")
 
-        if response.predictions:
+        if response.output_text:
+            print(f"LLM raw response: {response.output_text}")
+            print("=" * 50)
             # Normalize predictions to a dict
             pred_container = getattr(response, "predictions", None)
             if isinstance(pred_container, list):

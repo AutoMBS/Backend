@@ -62,6 +62,9 @@ async def lifespan(app: FastAPI):
     if not os.getenv('GOOGLE_APPLICATION_CREDENTIALS'):
         os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'app/thematic-keel-470306-f6-e15ba2e68d44.json'
         print("✅ Set GOOGLE_APPLICATION_CREDENTIALS environment variable")
+    if not os.getenv('OPENAI_API_KEY'):
+        os.environ['OPENAI_API_KEY'] = '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'
+        print("✅ Set OPENAI_API_KEY environment variable")
     
     try:
         # Initialize RAG service for semantic search capabilities
