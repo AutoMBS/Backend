@@ -48,7 +48,7 @@ class RAGService:
     # ---------- data ----------
     def build_doc(self, row: pd.Series) -> str:
         return (
-            f"{row['category_name']}  {row['service_provider']}  {row['location']}  {row['service_summary']}"
+            f"{row['category_name']}  {row['service_provider']}  {row['location']} {row['service_summary']}"
         )
 
     def load_corpus(self, category_id: str = "1"):

@@ -4,7 +4,7 @@ import json
 import re
 from google.cloud import aiplatform
 from openai import OpenAI
-
+import re
 PROJECT_ID = "thematic-keel-470306-f6"
 REGION = "us-east1"  # e.g., "us-central1"
 ENDPOINT_ID = "3651992687285895168" # Get this from the Console (Vertex AI -> Endpoints)
@@ -89,7 +89,7 @@ Return ONLY compact JSON with keys in this exact order:
 {{
   "selected_item_index": 0,
   "decision": "item_number or item_num of the chosen candidate",
-  "why": "Start with the candidate's service_summary and state WHY it matches in <=2 sentences.",
+  "why": "Start with the candidate's service_summary and state WHY it matches in <=2 sentences.And then please state the evidence match and extract some key evident from the patient information.",
   "evidence_match": {{
     "clinical": "1 short clause mapping patient presentation to service_summary",
     "age": "e.g., 42 within [0-200]",
@@ -161,14 +161,26 @@ Formatting constraints:
             client = OpenAI()
             response = client.responses.create(
                 model="gpt-4o-mini",
-                input=prompt
+                input=prompt,
+                temperature=self.temperature,
+                max_output_tokens=self.max_output_tokens,               
             )
+            
         except Exception as e:
             raise RuntimeError(f"Prediction call failed: {e}")
 
         if response.output_text:
+            print("====================LLM reasoning succeeded==============")
+            response_text = response.output_text.strip()
+
+            if response_text.startswith("```"):
+                m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", response_text, flags=re.IGNORECASE)
+                if m:
+                    response_text = m.group(1).strip()
+
+            print(response_text)
             # model response
-            output = json.loads(response.output_text)
+            output = json.loads(response_text)
 
             # original candidates list (whatever you passed in)
             raw_text = str(output)      # or keep the raw model text if you captured it
@@ -183,6 +195,7 @@ Formatting constraints:
                 "confidence": output.get("confidence"),
                 "reasoning": output.get("why"),
                 "key_factors": output.get("key_factors", []),
+                "evidence_match": output.get("evidence_match", {}),
                 "raw_text": raw_text,
                 "truncated": truncated,
                 "total_candidates": len(candidates),

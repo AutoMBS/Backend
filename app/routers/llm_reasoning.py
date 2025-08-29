@@ -14,11 +14,14 @@ def get_rag(request: Request) -> RAGService:
 def get_llm_reasoning(request: Request) -> LLMReasoningService:
     return request.app.state.llm_reasoning
 
+def get_llm_extract(request: Request) -> LLMReasoningService:
+    return request.app.state.llm_extract
+
 @router.post("/select_best_item",
             summary="LLM reasoning to select best medical coding item",
             description="Use LLM reasoning to select the most appropriate medical coding item based on RAG search results",
             tags=["LLM Reasoning"])
-def select_best_item(request: Dict[str, Any], rag: RAGService = Depends(get_rag), llm_reasoning: LLMReasoningService = Depends(get_llm_reasoning), llm_extract_service: LLMExtractService = Depends(get_llm_reasoning)):
+def select_best_item(request: Dict[str, Any], rag: RAGService = Depends(get_rag), llm_reasoning: LLMReasoningService = Depends(get_llm_reasoning), llm_extract_service: LLMExtractService = Depends(get_llm_extract)):
     try:
         # Get request parameters
         query = request.get("query", "")
@@ -30,7 +33,15 @@ def select_best_item(request: Dict[str, Any], rag: RAGService = Depends(get_rag)
         
         if not query:
             raise HTTPException(status_code=400, detail="Query text cannot be empty")
-        
+                
+        # Use LLM reasoning to select best medical coding item
+        response_complexity = llm_extract_service.predict_complexity(query)
+        complexity = response_complexity.get("complexity_level", "")
+        query = f"{query} [Complexity: {complexity}]"
+
+        print("="*50)
+        print("query with complexity:", query)
+
         # Use RAG search to get candidate medical coding items
         candidates = rag.search(
             query=query,
@@ -40,7 +51,6 @@ def select_best_item(request: Dict[str, Any], rag: RAGService = Depends(get_rag)
             location=location,
             top_n=top_n
         )
-        
         if not candidates or isinstance(candidates, dict) and candidates.get("error"):
             return {
                 "success": False,
@@ -48,14 +58,7 @@ def select_best_item(request: Dict[str, Any], rag: RAGService = Depends(get_rag)
                 "error": candidates.get("error") if isinstance(candidates, dict) else "No candidate items found",
                 "data": {"candidates": [], "selected_item": None}
             }
-        
-        # Use LLM reasoning to select best medical coding item
-        response_complexity = llm_extract_service.predict_complexity(query)
-        complexity = response_complexity.get("complexity_level", "")
-        query = f"{query} [Complexity: {complexity}]"
 
-        print("="*50)
-        print("query with complexity:", query)
 
         reasoning_result = llm_reasoning.select_best_item(
             patient_info=query,
