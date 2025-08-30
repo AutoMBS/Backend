@@ -53,7 +53,6 @@ class LLMReasoningService:
                 item_desc += f"- Item Number: {payload.get('item_number', 'N/A')}\n"
             elif "item_num" in payload:
                 item_desc += f"- Item Number: {payload.get('item_num', 'N/A')}\n"
-            
             if "category_name" in payload:
                 item_desc += f"- Category: {payload.get('category_name', 'N/A')}\n"
             if "group_name" in payload:
