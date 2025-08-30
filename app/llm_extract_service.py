@@ -44,11 +44,31 @@ class LLMExtractService:
     }}
 
     Rules:
-    - "Ordinary Complexity": single-system issue, no comorbidities, limited differential. Involves targeted history/exam, relevant investigations if needed, management plan, and discharge home. No observation required.
+    - "Ordinary Complexity": These items are for the consultation, investigation (if required) and management of a single system issue in a patient
+with no relevant comorbidities where the differential diagnosis is limited.Includes targeted history and examination, interpretation of relevant investigations (if required), development and
+initiation of a management plan, relevant GP and specialist communication and associated documentation. These
+patients would typically be discharged home from the Emergency Department. A period of observation is not
+required for these patients
+    - "Complexity More than Ordinary but Not High":These items are for the assessment, investigation and management of an undifferentiated presentation or a
+presentation with a clear diagnosis that needs risk stratification and complication exclusion. Where the diagnosis is
+clear from the outset, this item should be used when management is time consuming or more than one strategy is
+required. The attendance may include referral or consultation with alternate specialist(s). These patients may or may
+not be admitted.
+Includes a period of observation in response to initial treatment and / or requiring results of investigations to inform
+an ongoing management plan, and includes any routine point-of-care procedures (such as ECGs, in-dwelling urinary
+catheterisation, venous and arterial blood gas sampling, ultrasound in conjunction with procedures such as vascular
+access or nerve block).
+For patients requiring a prolonged period of observation, admission to an emergency department short stay unit may
+be required.
 
-    - "Complexity More than Ordinary but Not High": undifferentiated presentation or clear diagnosis needing risk stratification/complication exclusion. Time-consuming or multi-strategy management, may include observation, routine point-of-care procedures (ECG, catheter, blood gases, ultrasound with access). Admission possible, sometimes short-stay.
-
-    - "High Complexity": undifferentiated patient with comorbidities and multiple differentials. Requires specialist consultation, community/service liaison, admission planning, pharmacy reconciliation, and family/GP communication. Routine point-of-care procedures as above. Often prolonged observation or short-stay admission required.
+    - "High Complexity": These items are for the assessment, investigation and management of an undifferentiated ED patient with one or
+more comorbidities and more than one differential diagnosis.
+These items may include time consulting with alternate specialists, liaising with community services and
+arrangement of admission, pharmacy reconciliation, communication with family, carers and general practitioners;
+and any routine point-of-care procedures (such as ECGs, in-dwelling urinary catheterisation, venous and arterial
+blood gas sampling, ultrasound in conjunction with procedures such as vascular access or nerve block).
+For patients requiring a prolonged period of observation, admission to an emergency department short stay unit may
+be required.
 
     Note:
     \"\"\"{note.strip()}\"\"\"
