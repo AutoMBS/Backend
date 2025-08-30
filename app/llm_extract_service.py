@@ -36,7 +36,8 @@ class LLMExtractService:
     # Constrain model to return compact JSON (names unchanged; no mapping)
         return f"""
     You are a medical triage assistant. Read the following clinical note and estimate its **complexity level**.
-
+    - Do NOT include <think> sections or any hidden reasoning.
+    - Output ONLY the required JSON.
     Return ONLY a compact JSON with this schema:
     {{
     "complexity_level": "Ordinary complexity|Complexity that is more than ordinary but not high|High complexity",

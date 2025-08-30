@@ -14,7 +14,7 @@ def get_rag(request: Request) -> RAGService:
 def get_llm_reasoning(request: Request) -> LLMReasoningService:
     return request.app.state.llm_reasoning
 
-def get_llm_extract(request: Request) -> LLMReasoningService:
+def get_llm_extract(request: Request) -> LLMExtractService:
     return request.app.state.llm_extract
 
 @router.post("/select_best_item",
