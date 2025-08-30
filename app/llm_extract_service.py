@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional
 import json
 import re
 from google.cloud import aiplatform
+from openai import OpenAI
 
 
 PROJECT_ID = "thematic-keel-470306-f6"
@@ -80,64 +81,39 @@ class LLMExtractService:
         params: Dict[str, Any] = {}  # container ignores parameters
 
         try:
-            response = self.endpoint.predict(instances=instances, parameters=params)
+            client = OpenAI()
+            response = client.responses.create(
+                model="gpt-4o-mini",
+                input=prompt,
+                temperature=self.temperature,
+                max_output_tokens=self.max_output_tokens,               
+            )
+            # response = self.endpoint.predict(instances=instances, parameters=params)
         except Exception as e:
             raise RuntimeError(f"Prediction call failed: {e}")
 
-        if response.predictions:
+        if response.output_text:
+            print("====================LLM extract succeeded==============")
+            response_text = response.output_text.strip()
+            if response_text.startswith("```"):
+                m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", response_text, flags=re.IGNORECASE)
+                if m:
+                    response_text = m.group(1).strip()
 
-            # Normalize predictions to a dict
-            pred_container = getattr(response, "predictions", None)
-            if isinstance(pred_container, list):
-                pred0 = pred_container[0] if pred_container else {}
-            elif isinstance(pred_container, dict):
-                pred0 = pred_container
-            else:
-                pred0 = {}
+            print(response_text)
+            # model response
+            output = json.loads(response_text)
 
-            # Pull OpenAI-style content
-            choices = pred0.get("choices", []) if isinstance(pred0, dict) else []
-            content = choices[0].get("message", {}).get("content", "") if choices else ""
-            finish_reason = choices[0].get("finish_reason") if choices else None
-            truncated = (finish_reason == "length")
-            raw_text = content  # keep full assistant message for audit/debug
 
-            # Remove optional <think>...</think>
-            content = re.sub(r"<think>.*?</think>", "", content, flags=re.S).strip()
-
-            # Find the last balanced JSON object
-            def _find_last_json(s: str) -> Optional[str]:
-                end = None
-                depth = 0
-                for i in range(len(s) - 1, -1, -1):
-                    ch = s[i]
-                    if ch == '}':
-                        if depth == 0:
-                            end = i
-                        depth += 1
-                    elif ch == '{':
-                        depth -= 1
-                        if depth == 0 and end is not None:
-                            return s[i:end + 1]
-                return None
-
-            json_str = _find_last_json(content)
-
-            complexity_level = ""
-            reasoning = ""
-            if json_str:
-                try:
-                    parsed = json.loads(json_str)
-                    complexity_level = str(parsed.get("complexity_level", "")).strip()  # no mapping
-                    reasoning = str(parsed.get("reasoning", "")).strip()
-                except Exception:
-                    pass  # keep defaults if JSON parsing fails
+            complexity_level = output.get("complexity_level", "")
+            reasoning = output.get("reasoning", "")
+            raw_text = str(output)
 
             return {
                 "complexity_level": complexity_level,
                 "reasoning": reasoning,
                 "raw_text": raw_text,
-                "truncated": truncated,  # True if model hit length limit
+                # "truncated": truncated,  # True if model hit length limit
             }
 
 
